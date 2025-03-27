@@ -95,7 +95,7 @@ fun ItemSchedule(
 }
 
 val dummyTimingSchedule = TimingSchedule(
-    Prayer("04:40 (WIB)", false),
+  //  Prayer("04:40 (WIB)", false),
     Prayer("04:50 (WIB)", true),
     Prayer("05:51 (WIB)", false),
     Prayer("11:44 (WIB)", false),
@@ -126,7 +126,7 @@ private fun PreviewItemScheduleDark() {
 @Composable
 private fun PreviewItemScheduleSelected() {
     ItemSchedule(
-        dummyTimingSchedule.imsak,
+        dummyTimingSchedule.asr,
         dummyTimingSchedule
     ) { _, _, _, _ -> }
 }
@@ -135,7 +135,7 @@ private fun PreviewItemScheduleSelected() {
 @Composable
 private fun PreviewItemScheduleSelectedDark() {
     ItemSchedule(
-        dummyTimingSchedule.imsak,
+        dummyTimingSchedule.asr,
         dummyTimingSchedule
     ) { _, _, _, _ -> }
 }

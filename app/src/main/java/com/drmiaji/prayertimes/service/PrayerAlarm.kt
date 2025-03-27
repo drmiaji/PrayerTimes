@@ -74,13 +74,16 @@ class PrayerAlarm : BroadcastReceiver() {
                     append(" pray at ")
                     append(it.time)
                 })
-                if (it.index != 0 || it.index != 2) {
+                if (it.index != 1) { // Skip Sunrise only
                     val mediaPlayer = MediaPlayer.create(
-                        context, if (it.index == 1) R.raw.adzan_fajr else R.raw.adzan_makkah
+                        context, if (it.index == 0) R.raw.adzan_fajr else R.raw.adzan_makkah
                     )
                     mediaPlayer.apply {
                         isLooping = false
                         start()
+                        setOnCompletionListener {
+                            it.release() // ✅ Free the player after done
+                        }
                     }
                 }
             }

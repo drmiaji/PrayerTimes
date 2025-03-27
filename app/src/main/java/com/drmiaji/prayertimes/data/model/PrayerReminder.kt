@@ -12,13 +12,12 @@ data class PrayerReminder(
 ) : Parcelable {
     companion object{
         val EMPTY = listOf(
-            PrayerReminder(0, "-", false),
-            PrayerReminder(1, "-", false),
-            PrayerReminder(2, "-", false),
-            PrayerReminder(3, "-", false),
-            PrayerReminder(4, "-", false),
-            PrayerReminder(5, "-", false),
-            PrayerReminder(6, "-", false),
+            PrayerReminder(0, "-", false), // fajr
+            PrayerReminder(1, "-", false), // sunrise
+            PrayerReminder(2, "-", false), // dhuhr
+            PrayerReminder(3, "-", false), // asr
+            PrayerReminder(4, "-", false), // maghrib
+            PrayerReminder(5, "-", false), // isha
         )
     }
 }

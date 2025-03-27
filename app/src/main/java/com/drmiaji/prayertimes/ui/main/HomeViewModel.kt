@@ -103,7 +103,9 @@ class HomeViewModel @Inject constructor(
         val listSchedule = timingSchedule.toList()
         if (listSchedule.isNotEmpty()) {
             listOfReminder.forEach { reminder ->
-                listSchedule[reminder.index].isReminded = reminder.isReminded
+                if (reminder.index in listSchedule.indices) { // ✅ prevent out-of-bounds crash
+                    listSchedule[reminder.index].isReminded = reminder.isReminded
+                }
             }
             currentTimingSchedule = listSchedule.toTimingSchedule()
             viewModelScope.launch { this@HomeViewModel.timingSchedule = TimingSchedule.EMPTY }

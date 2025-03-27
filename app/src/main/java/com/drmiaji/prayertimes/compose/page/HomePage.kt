@@ -52,12 +52,14 @@ fun HomePage(
                     getInterval
                 )
             }
-            item { ItemSchedule(timingSchedule.imsak, timingSchedule, onSetReminder) }
+          // item { ItemSchedule(timingSchedule.imsak, timingSchedule, onSetReminder) }
             item { ItemSchedule(timingSchedule.fajr, timingSchedule, onSetReminder) }
+            item { ItemSchedule(timingSchedule.sunrise, timingSchedule, onSetReminder) }
             item { ItemSchedule(timingSchedule.dhuhr, timingSchedule, onSetReminder) }
             item { ItemSchedule(timingSchedule.asr, timingSchedule, onSetReminder) }
             item { ItemSchedule(timingSchedule.maghrib, timingSchedule, onSetReminder) }
             item { ItemSchedule(timingSchedule.isha, timingSchedule, onSetReminder) }
+
             item { ItemProgressActivity(progressListTask, goToProgressActivity) }
             item { ItemCalendar(calendar, goToDetailCalendar) }
         }

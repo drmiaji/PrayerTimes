@@ -34,7 +34,7 @@ data class DateSchedule(
 )
 
 data class TimingSchedule(
-    val imsak: Prayer,
+   // val imsak: Prayer,
     val fajr: Prayer,
     val sunrise: Prayer,
     val dhuhr: Prayer,
@@ -44,7 +44,7 @@ data class TimingSchedule(
 ) {
     companion object {
         val EMPTY = TimingSchedule(
-            Prayer.EMPTY,
+         //   Prayer.EMPTY,
             Prayer.EMPTY,
             Prayer.EMPTY,
             Prayer.EMPTY,
@@ -66,13 +66,13 @@ data class Prayer(
 
 fun TimingSchedule.getScheduleName(time: Prayer): String {
     return when (this.toList().indexOf(time)) {
-        0 -> "Imsak"
-        1 -> "Farj"
-        2 -> "Sunrise"
-        3 -> "Dhuhr"
-        4 -> "Asr"
-        5 -> "Maghrib"
-        6 -> "Isha"
+       // 0 -> "Imsak"
+        0 -> "Fajr"
+        1 -> "Sunrise"
+        2 -> "Dhuhr"
+        3 -> "Asr"
+        4 -> "Maghrib"
+        5 -> "Isha"
         else -> "-"
     }
 }
@@ -86,14 +86,21 @@ fun TimingSchedule.getNearestSchedule(timestamp: Timestamp): Prayer =
         } ?: this.toList().minByOrNull { it.time.hour } ?: Prayer.EMPTY
 
 fun TimingSchedule.toList() = if (this.fajr.time != "-") listOf(
-    this.imsak, this.fajr, this.sunrise, this.dhuhr, this.asr, this.maghrib, this.isha,
+    this.fajr, this.sunrise, this.dhuhr, this.asr, this.maghrib, this.isha,
 ) else listOf()
 
 fun List<Prayer>.toTimingSchedule() =
-    TimingSchedule(this[0], this[1], this[2], this[3], this[4], this[5], this[6])
+    TimingSchedule(this[0], this[1], this[2], this[3], this[4], this[5])
 
-val String.hour get() : Int = if (this != "-") this.split(":", " ").first().toInt() else 0
-val String.minutes get() : Int = if (this != "-") this.split(":", " ")[1].toInt() else 0
+// ✅ UPDATED:
+val String.onlyTime: String
+    get() = this.split(" ").first()
+
+val String.hour: Int
+    get() = if (this != "-" && this.contains(":")) this.onlyTime.split(":")[0].toInt() else 0
+
+val String.minutes: Int
+    get() = if (this != "-" && this.contains(":")) this.onlyTime.split(":")[1].toInt() else 0
 
 fun List<ScheduleResponse>.toSchedule(): MutableList<Schedule> {
     val listOfSchedule = mutableListOf<Schedule>()
@@ -101,15 +108,26 @@ fun List<ScheduleResponse>.toSchedule(): MutableList<Schedule> {
     return listOfSchedule
 }
 
+fun String.addMinutes(minutes: Int): String {
+    return try {
+        val formatter = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+        val date = formatter.parse(this)
+        val newTime = java.util.Date(date!!.time + minutes * 60 * 1000)
+        formatter.format(newTime)
+    } catch (_: Exception) {
+        this // fallback if parsing fails
+    }
+}
+
 fun ScheduleResponse.toSchedule(): Schedule {
     return Schedule(
         timingSchedule = TimingSchedule(
-            imsak = Prayer(this.timingResponse?.imsak ?: "-", false),
+          //  imsak = Prayer(this.timingResponse?.imsak ?: "-", false),
             fajr = Prayer(this.timingResponse?.fajr ?: "-", false),
             sunrise = Prayer(this.timingResponse?.sunrise ?: "-", false),
             dhuhr = Prayer(this.timingResponse?.dhuhr ?: "-", false),
             asr = Prayer(this.timingResponse?.asr ?: "-", false),
-            maghrib = Prayer(this.timingResponse?.maghrib ?: "-", false),
+            maghrib = Prayer((this.timingResponse?.maghrib ?: "-").addMinutes(4), false),
             isha = Prayer(this.timingResponse?.isha ?: "-", false),
         ),
         georgianDate = DateSchedule(

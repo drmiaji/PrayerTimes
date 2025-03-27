@@ -1,6 +1,7 @@
 package com.drmiaji.prayertimes.ui.compass
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -11,23 +12,21 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.drmiaji.prayertimes.compose.page.CompassPage
 import com.drmiaji.prayertimes.compose.ui.theme.AlifTheme
 import com.drmiaji.prayertimes.data.model.RotationTarget
 import com.drmiaji.prayertimes.utils.LocationUtils
 import com.drmiaji.prayertimes.utils.LocationUtils.checkLocationPermission
-
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import kotlin.math.abs
 
 class CompassActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var currentLocation: Location
     private lateinit var sensorManager: SensorManager
-
-    private var accelerometerValues: FloatArray? = null
-    private var magneticValues: FloatArray? = null
+    private var rotationSensor: Sensor? = null
 
     private var currentDegree = 0f
     private var currentDegreeNeedle = 0f
@@ -64,64 +63,55 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
             location?.let {
                 currentLocation = it
                 model.getLocationAddress(this, currentLocation)
-                sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
 
-                sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.let {
-                    sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
-                }
-
-                sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)?.let {
-                    sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+                sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+                rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+                rotationSensor?.let { sensor ->
+                    sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME)
                 }
             }
         }
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
-        if (event == null) return
+        if (event?.sensor?.type != Sensor.TYPE_ROTATION_VECTOR) return
 
-        when (event.sensor.type) {
-            Sensor.TYPE_ACCELEROMETER -> accelerometerValues = event.values
-            Sensor.TYPE_MAGNETIC_FIELD -> magneticValues = event.values
+        val rotationMatrix = FloatArray(9)
+        SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+
+        val orientation = FloatArray(3)
+        SensorManager.getOrientation(rotationMatrix, orientation)
+
+        val azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
+        val degree = (azimuth + 360) % 360
+
+        // Qibla logic
+        val destinationLoc = Location("service Provider").apply {
+            latitude = 21.422487
+            longitude = 39.826206
         }
 
-        if (accelerometerValues != null && magneticValues != null) {
-            val rotationMatrix = FloatArray(9)
-            val orientation = FloatArray(3)
+        var bearTo = currentLocation.bearingTo(destinationLoc)
+        if (bearTo < 0) bearTo += 360
 
-            val success = SensorManager.getRotationMatrix(
-                rotationMatrix, null,
-                accelerometerValues, magneticValues
-            )
+        var direction = bearTo - degree
+        if (direction < 0) direction += 360
 
-            if (success) {
-                SensorManager.getOrientation(rotationMatrix, orientation)
+        val isFacingQibla = direction in 359.0..360.0 || direction in 0.0..1.0
 
-                val azimuthRadians = orientation[0]
-                val azimuthDegrees = Math.toDegrees(azimuthRadians.toDouble()).toFloat()
-                val degree = (azimuthDegrees + 360) % 360
+        // ✅ SMOOTHING: Only update if degree changed significantly
+        if (abs(currentDegree - (-degree)) > 0.5f || abs(currentDegreeNeedle - direction) > 0.5f) {
+            // Optional low-pass filter (smoothing)
+            val smoothDegree = (0.85f * currentDegree + 0.15f * -degree)
+            val smoothNeedle = (0.85f * currentDegreeNeedle + 0.15f * direction)
 
-                // Qibla logic
-                val destinationLoc = Location("service Provider").apply {
-                    latitude = 21.422487
-                    longitude = 39.826206
-                }
+            val qiblaRotation = RotationTarget(currentDegreeNeedle, smoothNeedle)
+            val compassRotation = RotationTarget(currentDegree, smoothDegree)
 
-                var bearTo = currentLocation.bearingTo(destinationLoc)
-                if (bearTo < 0) bearTo += 360
+            currentDegree = smoothDegree
+            currentDegreeNeedle = smoothNeedle
 
-                var direction = bearTo - degree
-                if (direction < 0) direction += 360
-
-                val isFacingQibla = direction in 359.0..360.0 || direction in 0.0..1.0
-
-                val qiblaRotation = RotationTarget(currentDegreeNeedle, direction)
-                currentDegreeNeedle = direction
-                val compassRotation = RotationTarget(currentDegree, -degree)
-                currentDegree = -degree
-
-                model.updateCompass(qiblaRotation, compassRotation, isFacingQibla)
-            }
+            model.updateCompass(qiblaRotation, compassRotation, isFacingQibla)
         }
     }
 
