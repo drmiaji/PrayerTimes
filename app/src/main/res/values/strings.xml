@@ -46,4 +46,7 @@
     <!-- Notification Channel -->
     <string name="channel_new_messages">Prayer Time</string>
     <string name="channel_new_messages_description">Prayer Time Notifications</string>
+
+    <string name="title_activity_base_component">BaseComponent</string>
+    <string name="title_activity_quran">QuranActivity</string>
 </resources>
