@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.devtools.ksp)
     alias(libs.plugins.hilt.android)
+    id("kotlin-kapt") // ✅ Simple, works without version conflict
+    id("kotlin-parcelize")
 }
 
 android {
@@ -36,6 +38,8 @@ android {
     }
     buildFeatures {
         compose = true
+        dataBinding = true
+        viewBinding = true // ✅ Required!
     }
 }
 
@@ -49,6 +53,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.material)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
@@ -79,8 +84,22 @@ dependencies {
     implementation(libs.maps.compose)
 
     implementation(libs.androidx.core.ktx)
-    implementation (libs.androidx.material)
 
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.appcompat) // ✅ Latest stable
+    implementation(libs.firebase.firestore) // Or latest version
+    implementation(libs.logging.interceptor) // ✅ latest stable
+
+    //Room
+    implementation(libs.androidx.room.runtime)
+    kapt(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+
+    // skeleton
+    implementation(libs.skeletonlayout)
 }
 
 
