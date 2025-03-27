@@ -69,8 +69,15 @@ fun ItemProgressActivity(
                 }, text = "All(${listOfTask.size})"
             )
             LinearProgressIndicator(
-                progress = { 0.5f }, // ✅ Lambda version
-                modifier = Modifier.fillMaxWidth(),
+                progress = { percentage.toFloat() },
+                modifier = Modifier
+                    .constrainAs(progress) {
+                        top.linkTo(titleText.bottom, margin = 16.dp)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp)), // optional curve
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
                 strokeCap = StrokeCap.Round
