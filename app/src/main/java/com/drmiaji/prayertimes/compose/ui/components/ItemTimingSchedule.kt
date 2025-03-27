@@ -125,7 +125,7 @@ fun ItemTimingSchedule(
                     modifier = Modifier.constrainAs(textNextPray) {
                         bottom.linkTo(textNearestScheduleTime.top)
                         start.linkTo(parent.start)
-                    }, text = "Waktu Sholat Selanjutnya", textColor = White
+                    }, text = "Next Prayer Time", textColor = White
                 )
 
                 TextHeadingXLarge(
@@ -147,7 +147,7 @@ fun ItemTimingSchedule(
                         contentDescription = "",
                         modifier = Modifier.size(16.dp)
                     )
-                    TextBodySmall(
+                    TextBody(
                         text = locationAddress, textColor = White
                     )
                 }
@@ -156,7 +156,7 @@ fun ItemTimingSchedule(
     }
 }
 
-const val dummyLocationAddress = "Kecamatan Suranenggala, Kabupaten Cirebon"
+const val dummyLocationAddress = "Malmö, Sweden"
 const val dummyNextPray = "1h 18m 3s "
 const val dummyDescNextPray = "Asr"
 
