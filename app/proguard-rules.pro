@@ -19,3 +19,28 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# Room entities
+# Hilt
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep class * extends dagger.hilt.android.internal.lifecycle.HiltViewModelFactory { *; }
+-keep class * extends androidx.lifecycle.ViewModel
+-keepclassmembers class * {
+    @dagger.hilt.android.lifecycle.HiltViewModel <init>(...);
+}
+# Gson
+-keep class com.google.gson.** { *; }
+-keep class * {
+  @com.google.gson.annotations.SerializedName <fields>;
+}
+# Room
+-keep class androidx.room.** { *; }
+-keepclassmembers class * {
+   @androidx.room.* <methods>;
+}
+# Parcelable
+-keepclassmembers class * implements android.os.Parcelable {
+  static ** CREATOR;
+}
+-keep class com.drmiaji.prayertimes.** { *; }
+-keep class com.drmiaji.prayertimes.service.** { *; }
