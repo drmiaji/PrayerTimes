@@ -34,7 +34,7 @@ fun ItemProgressActivity(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp), shape = RoundedCornerShape(16.dp),
+            .padding(4.dp), shape = RoundedCornerShape(16.dp),
         onClick = { onClick() }
     ) {
         ConstraintLayout(

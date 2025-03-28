@@ -31,11 +31,16 @@ fun ItemMainDate(
         modifier = Modifier.fillMaxWidth()
     ) {
         val (title, iconQibla) = createRefs()
+
+        // ✅ Center the column between parent start and end
         Column(
             modifier = Modifier.constrainAs(title) {
-                end.linkTo(iconQibla.start)
-                width = Dimension.fillToConstraints
-            }, horizontalAlignment = Alignment.CenterHorizontally
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                width = Dimension.wrapContent
+                top.linkTo(parent.top)
+            },
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(24.dp))
             TextHeadingLarge(text = Timestamp.now().fullDate)
@@ -45,6 +50,7 @@ fun ItemMainDate(
             Spacer(modifier = Modifier.height(32.dp))
         }
 
+        // 🔁 Right icon (Qibla) remains the same
         ActionButton(modifier = Modifier.constrainAs(iconQibla) {
             end.linkTo(parent.end, margin = 8.dp)
             bottom.linkTo(parent.bottom)

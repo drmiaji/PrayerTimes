@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 app:srcCompat="@drawable/ic_arrow_back"
-                app:tint="?attr/iconNavColor" />
+                app:tint="@color/primary" />
         </com.google.android.material.card.MaterialCardView>
 
         <TextView

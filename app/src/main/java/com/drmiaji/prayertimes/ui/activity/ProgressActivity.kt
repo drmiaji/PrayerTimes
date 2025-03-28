@@ -74,6 +74,7 @@ class ProgressActivity : AppCompatActivity() {
                 with(binding) {
                     tvActivityLabel.text = data.title
                     tvAlarm.text = Timestamp(Date(data.date)).hourMinutes
+
                     ivCheck.apply {
                         setImageResource(if (data.isCheck) R.drawable.ic_check_fill else R.drawable.ic_check_outline)
                         imageTintList = ContextCompat.getColorStateList(
@@ -81,8 +82,24 @@ class ProgressActivity : AppCompatActivity() {
                             if (data.isCheck) R.color.primary else R.color.black_60
                         )
                     }
+
+                    // ✅ Click anywhere to view task details
+                    root.setOnClickListener {
+                        val intent = Intent(context, AddProgressActivity::class.java)
+                        intent.putExtra("task_to_edit", data)
+                        startForResult.launch(intent)
+                    }
+
+                    // ✅ Separate click to toggle check state
                     ivCheck.setOnClickListener { viewModel.checkedTask(data.id, data.isCheck) }
                     btnCheck.setOnClickListener { viewModel.checkedTask(data.id, data.isCheck) }
+
+                    // ✅ Separate click to open Edit
+                    ivEdit.setOnClickListener {
+                        val intent = Intent(context, AddProgressActivity::class.java)
+                        intent.putExtra("task_to_edit", data)
+                        startForResult.launch(intent)
+                    }
                 }
             }
         }

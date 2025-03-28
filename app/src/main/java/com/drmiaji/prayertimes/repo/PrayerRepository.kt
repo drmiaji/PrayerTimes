@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class PrayerRepository @Inject constructor(
-    private val remoteDataSource: RemoteDataSource, private val localDataSource: LocalDataSource
+    private val remoteDataSource: RemoteDataSource,
+    internal val localDataSource: LocalDataSource
 ) : DataRepositoryImpl {
     override suspend fun getSchedule(
         lat: Double, long: Double, month: Int, year: Int
@@ -58,15 +59,6 @@ class PrayerRepository @Inject constructor(
         }
         return false
     }
-
-//    private fun ProgressTaskEntity.filterDay(): Boolean {
-//        var isContain = false
-//        this.repeating.split(" ").forEach {
-//            if (it.isNotBlank()) isContain = listOf(indexOfDay, 7, -1).contains(it.toInt())
-//            if (isContain) return isContain
-//        }
-//        return isContain
-//    }
 
     override suspend fun addProgressTask(task: ProgressTask) {
         localDataSource.addProgressTask(task.toProgressEntity())

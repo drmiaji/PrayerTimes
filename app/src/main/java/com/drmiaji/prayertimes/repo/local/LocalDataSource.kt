@@ -23,4 +23,7 @@ class LocalDataSource @Inject constructor(
     suspend fun addCheckedTask(task: CheckedTaskEntity) = reminderDao.addCheckedTask(task)
     suspend fun deleteCheckedTask(task: CheckedTaskEntity) = reminderDao.deleteCheckedTask(task)
     suspend fun updateCheckedTask(task: CheckedTaskEntity) = reminderDao.updateCheckedTask(task)
+
+    suspend fun updateProgressTask(task: ProgressTaskEntity) = reminderDao.updateProgressTask(task)
+
 }

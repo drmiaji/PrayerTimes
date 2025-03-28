@@ -35,6 +35,9 @@ interface ReminderDao {
     @Update
     suspend fun updateCheckedTask(checkedTaskEntity: CheckedTaskEntity)
 
+    @Update
+    suspend fun updateProgressTask(task: ProgressTaskEntity)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addCheckedTask(checkedTaskEntity: CheckedTaskEntity)
 

@@ -1,5 +1,6 @@
 package com.drmiaji.prayertimes.ui.addactivity
 
+import android.os.Build
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.view.View
@@ -36,10 +37,37 @@ class AddProgressActivity : AppCompatActivity() {
     private val scope = lifecycleScope
     private var selectedTime = Calendar.getInstance()
 
+    private var isEdit = false
+    private var editingTaskId = 0L
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
         binding = ActivityAddProgressBinding.inflate(layoutInflater)
+        super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+        // 🟩 Check if we are editing a task
+        val taskToEdit: ProgressTask? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("task_to_edit", ProgressTask::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra("task_to_edit")
+        }
+        taskToEdit?.let { task ->
+            binding.appBar.ivBack.setImageResource(R.drawable.ic_arrow_back) // ✅ works now
+            binding.appBar.ivBack.visibility = View.VISIBLE
+
+            binding.appBar.btnBack.setOnClickListener {
+                finish()
+            }
+            binding.edtTitle.setText(task.title)
+            viewModel.setRepeatingFromString(task.repeating)
+            selectedTime.timeInMillis = task.date
+            populateDate(Timestamp(Date(task.date)))
+            populateTime(selectedTime.get(Calendar.HOUR_OF_DAY), selectedTime.get(Calendar.MINUTE))
+            isEdit = true
+            editingTaskId = task.id
+        }
+
         populateTime(Timestamp.now().hour, Timestamp.now().minutes)
         populateDate(Timestamp.now())
 
@@ -53,29 +81,38 @@ class AddProgressActivity : AppCompatActivity() {
 
         with(binding) {
             appBar.apply {
-                tvTitle.text = buildString { append("Add Activity") }
+                tvTitle.text = if (isEdit) "Edit Activity" else "Add Activity"
                 btnBack.setOnClickListener { finish() }
             }
+
+            // ✅ Change button label text based on edit mode
+            btnCreateActivityText.text = if (isEdit) "Update" else "Create Activity"
+
             btnRepeating.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.setRepeating(isChecked)
                 rvRepeating.visibility = if (isChecked) View.VISIBLE else View.GONE
             }
-            edtTitle.doAfterTextChanged { setUpButtonCreate(it.toString().isNotBlank()) }
+
+            edtTitle.doAfterTextChanged {
+                setUpButtonCreate(it.toString().isNotBlank())
+            }
+
             btnTime.setOnClickListener { showDatePicker() }
+
             btnCreateActivity.setOnClickListener {
-                viewModel.addTask(
+                viewModel.saveTask(
                     this@AddProgressActivity,
                     ProgressTask(
-                        Random.nextLong(123, 1234567) * 7 * (TimeUtils.indexOfDay + 1),
-                        edtTitle.text.toString(),
-                        selectedTime.time.time,
-                        "",
-                        false
-                    )
-                ).also {
-                    setResult(RESULT_OK)
-                    finish()
-                }
+                        id = if (isEdit) editingTaskId else Random.nextLong(123, 1234567),
+                        title = edtTitle.text.toString(),
+                        date = selectedTime.time.time,
+                        repeating = "", // Will be updated inside ViewModel
+                        isCheck = false
+                    ),
+                    isEdit
+                )
+                setResult(RESULT_OK)
+                finish()
             }
         }
     }
@@ -92,18 +129,16 @@ class AddProgressActivity : AppCompatActivity() {
     }
 
     private fun showDatePicker() {
-        val datePicker =
-            MaterialDatePicker.Builder.datePicker()
-                .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
-                .setTitleText("Select Reminder Date")
-                .build()
+        val datePicker = MaterialDatePicker.Builder.datePicker()
+            .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+            .setTitleText("Select Reminder Date")
+            .build()
         datePicker.show(supportFragmentManager, "Date Reminder")
         datePicker.addOnPositiveButtonClickListener {
             showTimePicker()
             val date = Date(it).stringFormat.timeStamp
             populateDate(date)
         }
-
     }
 
     private fun showTimePicker() {
@@ -121,15 +156,13 @@ class AddProgressActivity : AppCompatActivity() {
 
     private fun populateDate(date: Timestamp) {
         binding.tvDate.text = date.partialDate
-        selectedTime.apply { time = date.toDate() }
+        selectedTime.time = date.toDate()
     }
 
     private fun populateTime(hour: Int, minute: Int) {
         binding.tvTime.text = buildString {
-            selectedTime.apply {
-                set(Calendar.HOUR_OF_DAY, hour)
-                set(Calendar.MINUTE, minute)
-            }
+            selectedTime.set(Calendar.HOUR_OF_DAY, hour)
+            selectedTime.set(Calendar.MINUTE, minute)
             val data = DateFormat.format("hh:mm a", Date(selectedTime.timeInMillis)).toString()
             append(data.uppercase())
         }

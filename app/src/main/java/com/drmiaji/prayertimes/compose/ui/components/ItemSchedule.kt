@@ -48,7 +48,7 @@ fun ItemSchedule(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(4.dp),
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(
             if (isNowSchedule) 2.dp else 1.dp,
@@ -64,14 +64,16 @@ fun ItemSchedule(
         )
     ) {
         Row(
-            Modifier.padding(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp), // ⬅️ Reduce vertical space
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(4.dp))
             TextSubtitle(text = timingSchedule.getScheduleName(prayer))
             Spacer(modifier = Modifier.weight(5f))
             TextBody(text = prayer.time)
-            Spacer(modifier = Modifier.width(24.dp))
+            Spacer(modifier = Modifier.width(4.dp))
             Image(
                 modifier = Modifier
                     .padding(8.dp)
