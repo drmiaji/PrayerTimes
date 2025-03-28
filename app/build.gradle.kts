@@ -45,8 +45,16 @@ android {
 
 dependencies {
 
+    // ✅ Core & Foundation
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.foundation)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.constraintlayout.compose)
+
+    // ✅ Jetpack Compose
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -57,48 +65,43 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    // Hilt
+    // ✅ Hilt (Dependency Injection)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // Navigation
+    // ✅ Navigation & Permissions
     implementation(libs.androidx.navigation.compose)
-    implementation (libs.accompanist.permissions)
-    implementation (libs.play.services.location)
+    implementation(libs.accompanist.permissions)
 
-    // Lottie
-    implementation(libs.lottie.compose)
-
-    // Play Services
-    implementation (libs.jetbrains.kotlinx.coroutines.play.services)
-
-    // Retrofit
-    implementation (libs.retrofit)
-    implementation (libs.converter.gson)
-
-    implementation(libs.androidx.datastore.preferences)
-    implementation(libs.androidx.datastore)
-
-     // Maps
+    // ✅ Location & Maps
+    implementation(libs.play.services.location)
     implementation(libs.maps.compose)
 
-    implementation(libs.androidx.core.ktx)
+    // ✅ Network - Retrofit & Logging
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
 
-    implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.constraintlayout.compose)
-    implementation(libs.androidx.foundation)
-    implementation(libs.androidx.recyclerview)
-    implementation(libs.androidx.appcompat) // ✅ Latest stable
-    implementation(libs.firebase.firestore) // Or latest version
-    implementation(libs.logging.interceptor) // ✅ latest stable
+    // ✅ Lottie Animations
+    implementation(libs.lottie.compose)
 
-    //Room
+    // ✅ Coroutines & Play Services
+    implementation(libs.jetbrains.kotlinx.coroutines.play.services)
+
+    // ✅ Firebase
+    implementation(libs.firebase.firestore)
+
+    // ✅ DataStore
+    implementation(libs.androidx.datastore)
+    implementation(libs.androidx.datastore.preferences)
+
+    // ✅ Room Database
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
-    // skeleton
+    // ✅ Skeleton Layout (Shimmer loading)
     implementation(libs.skeletonlayout)
 }
 
