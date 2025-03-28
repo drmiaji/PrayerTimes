@@ -1,5 +1,6 @@
 package com.drmiaji.prayertimes.service
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,6 +11,9 @@ import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -58,37 +62,66 @@ class PrayerAlarm : BroadcastReceiver() {
     @Inject
     lateinit var repository: PrayerRepository
 
+    @SuppressLint("ServiceCast")
     override fun onReceive(context: Context, intent: Intent) {
+        // Handle activity alarms
         intent.extras?.getParcelable<ProgressTask>(EXTRA_ALARM_ACTIVITY)?.let {
-            if (Timestamp(Date(it.date)).hour >= Timestamp.now().hour) showAlarmNotification(
-                context, it.id.toInt(), NOTIFICATION_TITLE_ACTIVITY,
-                "Now it's time to do ${it.title}"
-            )
+            if (Timestamp(Date(it.date)).hour >= Timestamp.now().hour) {
+                showAlarmNotification(
+                    context, it.id.toInt(), NOTIFICATION_TITLE_ACTIVITY,
+                    "Now it's time to do ${it.title}"
+                )
+            }
         }
-        intent.extras?.getParcelable<PrayerReminder>(EXTRA_ALARM)?.let {
-            val reminderHour = it.time.split(":").first().toInt()
+
+        // Handle prayer reminders
+        intent.extras?.getParcelable<PrayerReminder>(EXTRA_ALARM)?.let { reminder ->
+            val reminderHour = reminder.time.split(":").first().toInt()
             if (reminderHour >= Timestamp.now().hour) {
-                showAlarmNotification(context, it.index, NOTIFICATION_TITLE, buildString {
+                // Show notification
+                showAlarmNotification(context, reminder.index, NOTIFICATION_TITLE, buildString {
                     append("Now it's time for ")
-                    append(getScheduleName(it.index))
-                    append(" pray at ")
-                    append(it.time)
+                    append(getScheduleName(reminder.index))
+                    append(" prayer at ")
+                    append(reminder.time)
                 })
-                if (it.index != 1) { // Skip Sunrise only
-                    val mediaPlayer = MediaPlayer.create(
-                        context, if (it.index == 0) R.raw.adzan_fajr else R.raw.adzan_makkah
+
+                // 🔔 Add vibration before playing azan
+                val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(
+                        VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE)
                     )
-                    mediaPlayer.apply {
-                        isLooping = false
-                        start()
-                        setOnCompletionListener {
-                            it.release() // ✅ Free the player after done
-                        }
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(1000)
+                }
+
+                // ✅ Play Azan with fallback
+                val azanResId = if (reminder.index == 0) { // Fajr
+                    try {
+                        R.raw.adzan_fajr
+                    } catch (e: Exception) {
+                        R.raw.adzan_makkah
                     }
+                } else {
+                    R.raw.adzan_makkah
+                }
+
+                val mediaPlayer = MediaPlayer.create(context, azanResId)
+                mediaPlayer?.apply {
+                    isLooping = false
+                    start()
+                    setOnCompletionListener {
+                        it.release()
+                    }
+                } ?: run {
+                    Log.e("AzanReceiver", "MediaPlayer failed to initialize!")
                 }
             }
         }
     }
+
 
     fun setPrayerAlarm(
         context: Context,

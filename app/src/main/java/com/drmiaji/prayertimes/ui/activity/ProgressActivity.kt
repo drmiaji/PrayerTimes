@@ -26,6 +26,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.util.Date
+import androidx.activity.OnBackPressedCallback
 
 @AndroidEntryPoint
 class ProgressActivity : AppCompatActivity() {
@@ -37,6 +38,15 @@ class ProgressActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityProgressBinding.inflate(layoutInflater)
+
+        // ✅ Add callback here
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                setResult(RESULT_OK)
+                finish()
+            }
+        })
+
         setContentView(binding.root)
         viewModel.getTodayActivity()
         setupAppBar()
@@ -105,12 +115,6 @@ class ProgressActivity : AppCompatActivity() {
             setResult(RESULT_OK)
             finish()
         }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        super.onBackPressed()
-        setResult(RESULT_OK)
     }
 
     private val startForResult =

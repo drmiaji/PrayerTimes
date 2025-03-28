@@ -70,7 +70,7 @@ fun CompassPage(
                 end.linkTo(parent.end)
                 top.linkTo(back.top)
                 bottom.linkTo(back.bottom)
-            }, text = "Cari Arah Kiblat", textColor = White)
+            }, text = "Find Qibla Direction", textColor = White)
 
             TextHeadingXLarge(
                 modifier = Modifier.constrainAs(degree) {
@@ -92,7 +92,7 @@ fun CompassPage(
                     colorFilter = ColorFilter.tint(White)
                 )
                 if (isFacingQilba) TextHeading(
-                    text = "Kamu Pas Menghadap Kiblat", textColor = White
+                    text = "You are facing the Qibla", textColor = White
                 )
                 if (realDegree in 181f..360f && !isFacingQilba) Image(
                     modifier = Modifier
@@ -163,7 +163,7 @@ private fun PreviewCompassPage() {
     CompassPage(false,
         RotationTarget(0f, 294f),
         RotationTarget(0f, 0f),
-        "Desa Muara, Kecamatan Suranenggala, Kabupaten Cirebon",
+        "Malmö, Sweden",
         {},
         {})
 }

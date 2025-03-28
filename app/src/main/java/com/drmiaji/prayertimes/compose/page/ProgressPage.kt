@@ -85,7 +85,7 @@ fun ProgressPage(
                     ItemActivity(
                         progressTask = ProgressTask(
                             1239281309829,
-                            "Sholat Dzuhur",
+                            "Dhuhr",
                             123123213,
                             "0",
                             false
