@@ -28,6 +28,7 @@ retrofit = "2.11.0"
 jetbrainsKotlinJvm = "2.0.20"
 roomRuntime = "2.6.1"
 skeletonlayout = "4.0.0"
+threetenabp = "1.4.5"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -66,6 +67,7 @@ material = { module = "com.google.android.material:material", version.ref = "mat
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocationVersion" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 skeletonlayout = { module = "com.faltenreich:skeletonlayout", version.ref = "skeletonlayout" }
+threetenabp = { module = "com.jakewharton.threetenabp:threetenabp", version.ref = "threetenabp" }
 
 
 [plugins]

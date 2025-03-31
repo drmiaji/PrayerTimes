@@ -115,13 +115,10 @@ class PrayerAlarm : BroadcastReceiver() {
                     setOnCompletionListener {
                         it.release()
                     }
-                } ?: run {
-                    Log.e("AzanReceiver", "MediaPlayer failed to initialize!")
                 }
             }
         }
     }
-
 
     fun setPrayerAlarm(
         context: Context,
@@ -132,22 +129,33 @@ class PrayerAlarm : BroadcastReceiver() {
         val intent = Intent(context, PrayerAlarm::class.java)
         intent.putExtra(EXTRA_ALARM, prayerReminder)
 
-        val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, prayerReminder.time.hour)
-            set(Calendar.MINUTE, prayerReminder.time.minutes)
-            set(Calendar.SECOND, 0)
-        }
+        val triggerAtMillis = TimeUtils.getNextPrayerTimeMillis(
+            prayerReminder.time.hour,
+            prayerReminder.time.minutes
+        )
 
         val pendingIntent = PendingIntent.getBroadcast(
             context, prayerReminder.index,
             intent, PendingIntent.FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
         )
-        alarmManager.setInexactRepeating(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
-            pendingIntent
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAtMillis,
+                    pendingIntent
+                )
+            } else {
+                Log.w("PrayerAlarm", "Exact alarm permission not granted.")
+            }
+        } else {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerAtMillis,
+                pendingIntent
+            )
+        }
+
         if (showToast == true) Toast.makeText(
             context,
             "Reminder for ${getScheduleName(prayerReminder.index)} at ${prayerReminder.time} is set",
@@ -179,12 +187,21 @@ class PrayerAlarm : BroadcastReceiver() {
                     context, (progressTask.id + interval).toInt(),
                     intent, PendingIntent.FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
                 )
-                alarmManager.setInexactRepeating(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    AlarmManager.INTERVAL_DAY * 7,
-                    pendingIntent
-                )
+                val triggerAtMillis = calendar.timeInMillis
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        triggerAtMillis,
+                        pendingIntent
+                    )
+                } else {
+                    alarmManager.setExact(
+                        AlarmManager.RTC_WAKEUP,
+                        triggerAtMillis,
+                        pendingIntent
+                    )
+                }
             }
         } else {
             calendar.apply {

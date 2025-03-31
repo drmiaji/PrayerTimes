@@ -4,6 +4,10 @@ import android.text.format.DateFormat
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
+import org.threeten.bp.ZonedDateTime
+import org.threeten.bp.ZoneId
+import org.threeten.bp.Duration
+
 
 object TimeUtils {
 
@@ -37,5 +41,33 @@ object TimeUtils {
     val indexOfDay get() : Int {
         val daysOfWeek = mutableListOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
         return daysOfWeek.indexOf(Timestamp.now().dayOfWeek)
+    }
+    // ✅ Returns the current time in milliseconds (accurate and reliable)
+    val currentTimeMillis: Long
+        get() = ZonedDateTime.now(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+    val nowZoned: ZonedDateTime
+        get() = ZonedDateTime.now(ZoneId.systemDefault())
+
+    fun getNextPrayerTimeMillis(hour: Int, minute: Int): Long {
+        val now = nowZoned
+        var prayerTime = now.withHour(hour).withMinute(minute).withSecond(0).withNano(0)
+
+        if (prayerTime.isBefore(now)) {
+            prayerTime = prayerTime.plusDays(1)
+        }
+
+        return prayerTime.toInstant().toEpochMilli()
+    }
+
+    fun getCountdownToPrayerMillis(hour: Int, minute: Int): Long {
+        val now = nowZoned
+        var prayerTime = now.withHour(hour).withMinute(minute).withSecond(0).withNano(0)
+
+        if (prayerTime.isBefore(now)) {
+            prayerTime = prayerTime.plusDays(1)
+        }
+
+        return Duration.between(now, prayerTime).toMillis()
     }
 }
