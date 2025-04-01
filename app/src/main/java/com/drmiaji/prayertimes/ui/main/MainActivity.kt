@@ -13,6 +13,7 @@ import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
 import com.drmiaji.prayertimes.compose.page.HomePage
 import com.drmiaji.prayertimes.compose.ui.theme.AlifTheme
+import com.drmiaji.prayertimes.data.model.Prayer
 import com.drmiaji.prayertimes.data.model.TimingSchedule
 import com.drmiaji.prayertimes.databinding.ActivityMainBinding
 import com.drmiaji.prayertimes.ui.activity.ProgressActivity
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity() {
                     homeViewModel.locationAddress,
                     homeViewModel.nextPray,
                     homeViewModel.descNextPray,
-                    homeViewModel::getIntervalText,
+                    { timingSchedule, prayer -> homeViewModel.getIntervalText(this, timingSchedule, prayer) },
                     this::updatePrayer,
                     this::toDetailCalendar,
                     this::toProgressActivity

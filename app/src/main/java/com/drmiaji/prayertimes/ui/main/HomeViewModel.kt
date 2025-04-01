@@ -3,6 +3,7 @@ package com.drmiaji.prayertimes.ui.main
 import android.content.Context
 import android.location.Geocoder
 import android.location.Location
+import android.media.MediaPlayer
 import android.os.CountDownTimer
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -17,13 +18,14 @@ import com.drmiaji.prayertimes.data.model.PrayerReminder
 import com.drmiaji.prayertimes.data.model.Schedule
 import com.drmiaji.prayertimes.data.model.TimingSchedule
 import com.drmiaji.prayertimes.data.model.getScheduleName
+import com.drmiaji.prayertimes.repo.PrayerRepository
+import com.drmiaji.prayertimes.repo.States
+import com.drmiaji.prayertimes.service.PrayerAlarm
+import com.drmiaji.prayertimes.R
 import com.drmiaji.prayertimes.data.model.hour
 import com.drmiaji.prayertimes.data.model.minutes
 import com.drmiaji.prayertimes.data.model.toList
 import com.drmiaji.prayertimes.data.model.toTimingSchedule
-import com.drmiaji.prayertimes.repo.PrayerRepository
-import com.drmiaji.prayertimes.repo.States
-import com.drmiaji.prayertimes.service.PrayerAlarm
 import com.drmiaji.prayertimes.utils.TimeUtils.day
 import com.drmiaji.prayertimes.utils.TimeUtils.hour
 import com.drmiaji.prayertimes.utils.TimeUtils.month
@@ -52,9 +54,11 @@ class HomeViewModel @Inject constructor(
     var nextPray by mutableStateOf("-")
     var descNextPray by mutableStateOf("-")
     private lateinit var countDownTimer: CountDownTimer
+    private lateinit var appContext: Context
 
     var locationAddress by mutableStateOf("-")
 
+    private lateinit var mediaPlayer: MediaPlayer
 
     fun getPrayerSchedule(lat: Double, long: Double, date: Timestamp) = viewModelScope.launch {
         repository.getSchedule(lat, long, date.month, date.year).collect {
@@ -130,7 +134,8 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun getIntervalText(timingSchedule: TimingSchedule, prayer: Prayer) = viewModelScope.launch {
+    fun getIntervalText(context: Context, timingSchedule: TimingSchedule, prayer: Prayer) = viewModelScope.launch {
+        appContext = context
         val now = Timestamp.now()
         val diff: Long = Date(
             Calendar.getInstance().apply {
@@ -162,8 +167,14 @@ class HomeViewModel @Inject constructor(
                     append(" it's time to pray ")
                     append(timingSchedule.getScheduleName(prayer))
                 }
+                playAzan(appContext)
             }
         }.start()
+    }
+
+    private fun playAzan(context: Context) {
+        mediaPlayer = MediaPlayer.create(context, R.raw.adzan_makkah)
+        mediaPlayer.start()
     }
 
     fun getLocationAddress(context: Context, location: Location) {
@@ -179,5 +190,4 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-
 }

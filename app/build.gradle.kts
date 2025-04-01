@@ -42,6 +42,9 @@ android {
         dataBinding = true
         viewBinding = true // ✅ Required!
     }
+    kapt {
+        correctErrorTypes = true
+    }
 }
 
 dependencies {
@@ -107,4 +110,8 @@ dependencies {
     implementation(libs.threetenabp)
 }
 
-
+kapt {
+    arguments {
+        arg("dagger.hilt.internal.useAggregatingRootProcessor", "true")
+    }
+}
