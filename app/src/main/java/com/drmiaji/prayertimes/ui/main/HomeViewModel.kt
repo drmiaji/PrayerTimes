@@ -137,36 +137,44 @@ class HomeViewModel @Inject constructor(
     fun getIntervalText(context: Context, timingSchedule: TimingSchedule, prayer: Prayer) = viewModelScope.launch {
         appContext = context
         val now = Timestamp.now()
-        val diff: Long = Date(
-            Calendar.getInstance().apply {
-                set(
-                    Calendar.DAY_OF_MONTH,
-                    if (now.hour > timingSchedule.isha.time.hour) now.day + 1 else now.day
-                )
-                set(Calendar.HOUR_OF_DAY, prayer.time.hour)
-                set(Calendar.MINUTE, prayer.time.minutes)
-            }.time.time
-        ).time - now.toDate().time
+
+        // Calculate the prayer time for today or tomorrow if needed
+        val prayerCalendar = Calendar.getInstance().apply {
+            set(
+                Calendar.DAY_OF_MONTH,
+                if (now.hour > timingSchedule.isha.time.hour) now.day + 1 else now.day
+            )
+            set(Calendar.HOUR_OF_DAY, prayer.time.hour)
+            set(Calendar.MINUTE, prayer.time.minutes)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        // Calculate milliseconds until prayer time
+        val currentTimeMillis = now.toDate().time
+        val prayerTimeMillis = prayerCalendar.timeInMillis
+
+        // Calculate the difference in milliseconds
+        val diffMillis = prayerTimeMillis - currentTimeMillis
+
         if (this@HomeViewModel::countDownTimer.isInitialized) countDownTimer.cancel()
-        countDownTimer = object : CountDownTimer(diff, 1000) {
-            override fun onTick(progress: Long) {
-                val seconds = progress / 1000
-                val minutes = seconds / 60
-                val hours = minutes / 60
-                nextPray = "${hours}h ${minutes - (hours * 60)}m ${seconds - (minutes * 60)}s"
-                descNextPray = buildString {
-                    append(" to ")
-                    append(timingSchedule.getScheduleName(prayer))
-                }
+
+        countDownTimer = object : CountDownTimer(diffMillis, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                // Convert to hours, minutes, seconds using proper division
+                val seconds = (millisUntilFinished / 1000) % 60
+                val minutes = (millisUntilFinished / (1000 * 60)) % 60
+                val hours = millisUntilFinished / (1000 * 60 * 60)
+
+                // Format using String.format with explicit locale for consistent display with leading zeros
+                nextPray = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
+                descNextPray = " to ${timingSchedule.getScheduleName(prayer)}"
             }
 
             override fun onFinish() {
                 if (this@HomeViewModel::countDownTimer.isInitialized) countDownTimer.cancel()
                 nextPray = "Now"
-                descNextPray = buildString {
-                    append(" it's time to pray ")
-                    append(timingSchedule.getScheduleName(prayer))
-                }
+                descNextPray = " it's time to pray ${timingSchedule.getScheduleName(prayer)}"
                 playAzan(appContext)
             }
         }.start()

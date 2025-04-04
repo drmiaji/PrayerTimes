@@ -4,6 +4,7 @@ import com.google.firebase.Timestamp
 import com.drmiaji.prayertimes.repo.remote.response.ScheduleResponse
 import com.drmiaji.prayertimes.utils.TimeUtils.hour
 import com.drmiaji.prayertimes.utils.TimeUtils.minutes
+import kotlin.text.compareTo
 
 data class Schedule(
     val timingSchedule: TimingSchedule,
@@ -79,11 +80,11 @@ fun TimingSchedule.getScheduleName(time: Prayer): String {
 
 fun TimingSchedule.getNearestSchedule(timestamp: Timestamp): Prayer =
     this.toList()
-        .filter { it.time.hour >= timestamp.hour }
+        .filter { it != this.sunrise && it.time.hour >= timestamp.hour }
         .firstOrNull {
             if (it.time.hour == timestamp.hour) it.time.minutes >= timestamp.minutes
             else it.time.hour >= timestamp.hour
-        } ?: this.toList().minByOrNull { it.time.hour } ?: Prayer.EMPTY
+        } ?: this.toList().filter { it != this.sunrise }.minByOrNull { it.time.hour } ?: Prayer.EMPTY
 
 fun TimingSchedule.toList() = if (this.fajr.time != "-") listOf(
     this.fajr, this.sunrise, this.dhuhr, this.asr, this.maghrib, this.isha,
@@ -122,13 +123,13 @@ fun String.addMinutes(minutes: Int): String {
 fun ScheduleResponse.toSchedule(): Schedule {
     return Schedule(
         timingSchedule = TimingSchedule(
-          //  imsak = Prayer(this.timingResponse?.imsak ?: "-", false),
-            fajr = Prayer(this.timingResponse?.fajr ?: "-", false),
-            sunrise = Prayer(this.timingResponse?.sunrise ?: "-", false),
-            dhuhr = Prayer(this.timingResponse?.dhuhr ?: "-", false),
-            asr = Prayer(this.timingResponse?.asr ?: "-", false),
+            // imsak = Prayer((this.timingResponse?.imsak ?: "-").addMinutes(0), false),
+            fajr = Prayer((this.timingResponse?.fajr ?: "-").addMinutes(18), false),
+            sunrise = Prayer((this.timingResponse?.sunrise ?: "-").addMinutes(0), false),
+            dhuhr = Prayer((this.timingResponse?.dhuhr ?: "-").addMinutes(0), false),
+            asr = Prayer((this.timingResponse?.asr ?: "-").addMinutes(0), false),
             maghrib = Prayer((this.timingResponse?.maghrib ?: "-").addMinutes(4), false),
-            isha = Prayer(this.timingResponse?.isha ?: "-", false),
+            isha = Prayer((this.timingResponse?.isha ?: "-").addMinutes(-19), false),
         ),
         georgianDate = DateSchedule(
             day = (this.dateResponse?.gregorian?.day ?: "0").toInt(),
