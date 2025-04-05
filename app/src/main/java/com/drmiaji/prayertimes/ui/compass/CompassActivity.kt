@@ -1,13 +1,14 @@
 package com.drmiaji.prayertimes.ui.compass
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,7 +23,6 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import java.io.IOException
 import java.util.Locale
-import kotlin.collections.isNotEmpty
 import kotlin.math.abs
 
 class CompassActivity : AppCompatActivity(), SensorEventListener {
@@ -82,21 +82,50 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
     private fun updateLocationAddress(location: Location) {
         val geocoder = Geocoder(this, Locale.getDefault())
+
         try {
-            val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-            if (addresses != null && addresses.isNotEmpty()) {
-                val address = addresses[0]
-                locationAddress = buildString {
-                    append(address.getAddressLine(0))
-                }
-                updateUI()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // Modern approach (Android 13+)
+                geocoder.getFromLocation(
+                    location.latitude,
+                    location.longitude,
+                    1,
+                    object : Geocoder.GeocodeListener {
+                        override fun onGeocode(addresses: List<Address>) {
+                            if (addresses.isNotEmpty()) {
+                                val address = addresses[0]
+                                locationAddress = buildString {
+                                    append(address.getAddressLine(0) ?: "")
+                                }
+                            } else {
+                                locationAddress = "Address not found"
+                            }
+                            updateUI()
+                        }
+
+                        override fun onError(errorMessage: String?) {
+                            locationAddress = "Unable to get address: $errorMessage"
+                            updateUI()
+                        }
+                    }
+                )
             } else {
-                locationAddress = "Address not found"
+                // Legacy approach for older Android versions
+                @Suppress("DEPRECATION")
+                val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                if (addresses != null && addresses.isNotEmpty()) {
+                    val address = addresses[0]
+                    locationAddress = buildString {
+                        append(address.getAddressLine(0) ?: "")
+                    }
+                } else {
+                    locationAddress = "Address not found"
+                }
                 updateUI()
             }
         } catch (e: IOException) {
             e.printStackTrace()
-            locationAddress = "Unable to get address"
+            locationAddress = "Unable to get address: ${e.message}"
             updateUI()
         }
     }

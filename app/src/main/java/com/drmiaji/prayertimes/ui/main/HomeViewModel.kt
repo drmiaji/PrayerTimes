@@ -14,34 +14,30 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Timestamp
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.drmiaji.prayertimes.R
 import com.drmiaji.prayertimes.data.model.Prayer
 import com.drmiaji.prayertimes.data.model.PrayerReminder
 import com.drmiaji.prayertimes.data.model.Schedule
 import com.drmiaji.prayertimes.data.model.TimingSchedule
 import com.drmiaji.prayertimes.data.model.getScheduleName
-import com.drmiaji.prayertimes.repo.PrayerRepository
-import com.drmiaji.prayertimes.repo.States
-import com.drmiaji.prayertimes.service.PrayerAlarm
-import com.drmiaji.prayertimes.R
 import com.drmiaji.prayertimes.data.model.hour
 import com.drmiaji.prayertimes.data.model.minutes
 import com.drmiaji.prayertimes.data.model.toList
 import com.drmiaji.prayertimes.data.model.toTimingSchedule
+import com.drmiaji.prayertimes.repo.PrayerRepository
+import com.drmiaji.prayertimes.repo.States
+import com.drmiaji.prayertimes.service.PrayerAlarm
 import com.drmiaji.prayertimes.utils.TimeUtils.day
 import com.drmiaji.prayertimes.utils.TimeUtils.hour
 import com.drmiaji.prayertimes.utils.TimeUtils.month
 import com.drmiaji.prayertimes.utils.TimeUtils.year
+import com.google.firebase.Timestamp
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
-
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
 
 
 @HiltViewModel

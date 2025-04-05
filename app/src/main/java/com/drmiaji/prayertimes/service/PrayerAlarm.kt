@@ -33,7 +33,7 @@ import com.drmiaji.prayertimes.utils.TimeUtils.hourMinutes
 import com.drmiaji.prayertimes.utils.TimeUtils.minutes
 import java.util.*
 import javax.inject.Inject
-
+import android.os.VibratorManager
 
 @AndroidEntryPoint
 class PrayerAlarm : BroadcastReceiver() {
@@ -48,13 +48,13 @@ class PrayerAlarm : BroadcastReceiver() {
         const val CHANNEL_ID = "Reminder"
         const val CHANNEL_NAME = "Daily Reminder"
         private fun getScheduleName(index: Int) = when (index) {
-            0 -> "Imsak"
-            1 -> "Farj"
-            2 -> "Sunrise"
-            3 -> "Dhuhr"
-            4 -> "Asr"
-            5 -> "Maghrib"
-            6 -> "Isha"
+          //  0 -> "Imsak"
+            0 -> "Farj"
+            1 -> "Sunrise"
+            2 -> "Dhuhr"
+            3 -> "Asr"
+            4 -> "Maghrib"
+            5 -> "Isha"
             else -> "-"
         }
     }
@@ -65,7 +65,14 @@ class PrayerAlarm : BroadcastReceiver() {
     @SuppressLint("ServiceCast")
     override fun onReceive(context: Context, intent: Intent) {
         // Handle activity alarms
-        intent.extras?.getParcelable<ProgressTask>(EXTRA_ALARM_ACTIVITY)?.let {
+        val progressTask = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.extras?.getParcelable(EXTRA_ALARM_ACTIVITY, ProgressTask::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.extras?.getParcelable(EXTRA_ALARM_ACTIVITY)
+        }
+
+        progressTask?.let {
             if (Timestamp(Date(it.date)).hour >= Timestamp.now().hour) {
                 showAlarmNotification(
                     context, it.id.toInt(), NOTIFICATION_TITLE_ACTIVITY,
@@ -75,7 +82,14 @@ class PrayerAlarm : BroadcastReceiver() {
         }
 
         // Handle prayer reminders
-        intent.extras?.getParcelable<PrayerReminder>(EXTRA_ALARM)?.let { reminder ->
+        val prayerReminder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.extras?.getParcelable(EXTRA_ALARM, PrayerReminder::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.extras?.getParcelable(EXTRA_ALARM)
+        }
+
+        prayerReminder?.let { reminder ->
             val reminderHour = reminder.time.split(":").first().toInt()
             if (reminderHour >= Timestamp.now().hour) {
                 // Show notification
@@ -87,21 +101,28 @@ class PrayerAlarm : BroadcastReceiver() {
                 })
 
                 // 🔔 Add vibration before playing azan
-                val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    vibrator.vibrate(
-                        VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE)
-                    )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    // Use VibratorManager for Android 12+
+                    val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+                    val vibrator = vibratorManager.defaultVibrator
+                    vibrator.vibrate(VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE))
                 } else {
-                    @Suppress("DEPRECATION")
-                    vibrator.vibrate(1000)
+                    // No need for SDK_INT >= M check since your min SDK is already >= 23
+                    val vibrator = context.getSystemService(Vibrator::class.java)
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        vibrator.vibrate(VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE))
+                    } else {
+                        @Suppress("DEPRECATION")
+                        vibrator.vibrate(1000)
+                    }
                 }
 
                 // ✅ Play Azan with fallback
                 val azanResId = if (reminder.index == 0) { // Fajr
                     try {
                         R.raw.adzan_fajr
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         R.raw.adzan_makkah
                     }
                 } else {
@@ -189,19 +210,11 @@ class PrayerAlarm : BroadcastReceiver() {
                 )
                 val triggerAtMillis = calendar.timeInMillis
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    alarmManager.setExactAndAllowWhileIdle(
-                        AlarmManager.RTC_WAKEUP,
-                        triggerAtMillis,
-                        pendingIntent
-                    )
-                } else {
-                    alarmManager.setExact(
-                        AlarmManager.RTC_WAKEUP,
-                        triggerAtMillis,
-                        pendingIntent
-                    )
-                }
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAtMillis,
+                    pendingIntent
+                )
             }
         } else {
             calendar.apply {
