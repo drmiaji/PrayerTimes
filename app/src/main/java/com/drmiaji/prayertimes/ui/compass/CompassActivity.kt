@@ -6,6 +6,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -19,6 +20,9 @@ import com.drmiaji.prayertimes.utils.LocationUtils
 import com.drmiaji.prayertimes.utils.LocationUtils.checkLocationPermission
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import java.io.IOException
+import java.util.Locale
+import kotlin.collections.isNotEmpty
 import kotlin.math.abs
 
 class CompassActivity : AppCompatActivity(), SensorEventListener {
@@ -32,6 +36,8 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
     private var currentDegreeNeedle = 0f
 
     private val model: CompassViewModel by viewModels()
+
+    private var locationAddress: String = "Unknown Location"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,13 +68,55 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             location?.let {
                 currentLocation = it
+                updateLocationAddress(it)  // Call the function here
                 model.getLocationAddress(this, currentLocation)
 
-                sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+                sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
                 rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
                 rotationSensor?.let { sensor ->
                     sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME)
                 }
+            }
+        }
+    }
+
+    private fun updateLocationAddress(location: Location) {
+        val geocoder = Geocoder(this, Locale.getDefault())
+        try {
+            val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+            if (addresses != null && addresses.isNotEmpty()) {
+                val address = addresses[0]
+                locationAddress = buildString {
+                    append(address.getAddressLine(0))
+                }
+                updateUI()
+            } else {
+                locationAddress = "Address not found"
+                updateUI()
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            locationAddress = "Unable to get address"
+            updateUI()
+        }
+    }
+
+    private fun updateUI() {
+        setContent {
+            AlifTheme {
+                CompassPage(
+                    model.isFacingQibla,
+                    model.qilbaRotation,
+                    model.compassRotation,
+                    locationAddress,
+                    goToBack = { finish() },
+                    refreshLocation = {
+                        if (this::sensorManager.isInitialized) {
+                            sensorManager.unregisterListener(this)
+                        }
+                        getLocation()
+                    }
+                )
             }
         }
     }

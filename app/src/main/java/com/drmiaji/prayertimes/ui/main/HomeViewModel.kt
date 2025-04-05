@@ -1,9 +1,12 @@
 package com.drmiaji.prayertimes.ui.main
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.CountDownTimer
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -37,6 +40,10 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: PrayerRepository,
@@ -56,7 +63,8 @@ class HomeViewModel @Inject constructor(
     private lateinit var countDownTimer: CountDownTimer
     private lateinit var appContext: Context
 
-    var locationAddress by mutableStateOf("-")
+    var locationAddress: String = ""
+        private set
 
     private lateinit var mediaPlayer: MediaPlayer
 
@@ -185,17 +193,39 @@ class HomeViewModel @Inject constructor(
         mediaPlayer.start()
     }
 
+    @SuppressLint("MissingPermission")
     fun getLocationAddress(context: Context, location: Location) {
         viewModelScope.launch {
-            Geocoder(context, Locale.getDefault()).apply {
-                getFromLocation(location.latitude, location.longitude, 1)?.first()
-                    ?.let { address ->
-                        locationAddress = buildString {
-                            append(address.locality).append(", ")
-                            append(address.subAdminArea)
+            val geocoder = Geocoder(context, Locale.getDefault())
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // Use the new API for Android 13+ (API 33+)
+                geocoder.getFromLocation(
+                    location.latitude,
+                    location.longitude,
+                    1,
+                    object : Geocoder.GeocodeListener {
+                        override fun onGeocode(addresses: List<Address>) {
+                            if (addresses.isNotEmpty()) {
+                                processAddress(addresses.first())
+                            }
                         }
                     }
+                )
+            } else {
+                // Use the old API for older versions
+                @Suppress("DEPRECATION")
+                geocoder.getFromLocation(location.latitude, location.longitude, 1)?.let { addresses ->
+                    if (addresses.isNotEmpty()) {
+                        processAddress(addresses.first())
+                    }
+                }
             }
+        }
+    }
+    private fun processAddress(address: Address) {
+        locationAddress = buildString {
+            append(address.getAddressLine(0))
         }
     }
 }
