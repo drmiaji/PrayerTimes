@@ -97,7 +97,7 @@ fun HomeScreen(
                 hijriCalendar = "${uiState.hijriDate}",
             )
             PrayerTimeCard(uiState)
-            VerseText()
+         //   VerseText()
             PrayerTimesSection(uiState)
         }
     }
@@ -373,40 +373,6 @@ private fun PrayerTimesSection(uiState: HomeContract.UiState) {
     }
 }
 
-
-@Composable
-fun VerseText() {
-    val verse = stringResource(id = R.string.verse_text)
-    val surahName = stringResource(id = R.string.surah_name)
-    val verseNumber = stringResource(id = R.string.verse_number)
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        Text(
-            text = verse,
-            textAlign = TextAlign.Center,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            fontFamily = FontFamily.Cursive
-        )
-        Text(
-            text = "$surahName, $verseNumber",
-            textAlign = TextAlign.Center,
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.primary,
-            fontStyle = FontStyle.Italic,
-            fontWeight = FontWeight.ExtraLight,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-    }
-}
-
 @Preview
 @Composable
 fun HomeScreenPreview(
@@ -414,7 +380,7 @@ fun HomeScreenPreview(
 ) {
     HomeScreen(
         uiState = uiState,
-        uiEffect =  flow {  },
+        uiEffect = flow { },
         onAction = {}
     )
 }

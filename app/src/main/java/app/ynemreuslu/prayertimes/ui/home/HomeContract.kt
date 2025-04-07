@@ -2,8 +2,6 @@ package app.ynemreuslu.prayertimes.ui.home
 
 import app.ynemreuslu.prayertimes.domain.prayer.PrayerTimings
 
-
-
 object HomeContract {
     data class UiState(
         val isLoading: Boolean = false,
@@ -15,17 +13,14 @@ object HomeContract {
         val gregorianDate: String? = null,
         val hijriDate: String? = null,
         val prayerIndex: Int? = null,
-        val prayerHours : String? = null,
-        val prayerMinutes : String? = null,
-        val prayerSeconds : String? = null,
+        val prayerHours: String? = null,
+        val prayerMinutes: String? = null,
+        val prayerSeconds: String? = null,
     )
 
-
-    sealed class UiAction {
-
-    }
+    sealed class UiAction
 
     sealed class UiEffect {
-         object RequestLocationPermission : UiEffect()
+        data object RequestLocationPermission : UiEffect()
     }
 }

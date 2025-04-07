@@ -14,11 +14,10 @@ android {
 
     defaultConfig {
         applicationId = "app.ynemreuslu.prayertimes"
-        minSdk = 26
+        minSdk = 23
         targetSdk = 35
         compileSdk = 35
         versionName = "1.0"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Api Keys
         val keystoreFile = project.rootProject.file("api_keys.properties")
@@ -26,15 +25,16 @@ android {
         properties.load(keystoreFile.inputStream())
         val geminiApiKey = properties.getProperty("GEMINI_API_KEY") ?: ""
         val mapsApiKey = properties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
-        buildConfigField("String", "GEMINI_API_KEY", geminiApiKey)
-        buildConfigField("String", "GOOGLE_MAPS_API_KEY", mapsApiKey)
+        buildConfigField("String", "GEMINI_API_KEY", "\"${geminiApiKey}\"")
+        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"${mapsApiKey}\"")
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = geminiApiKey
 
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -65,11 +65,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
+
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 

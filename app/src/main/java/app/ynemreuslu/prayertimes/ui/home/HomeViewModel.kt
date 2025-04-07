@@ -59,7 +59,7 @@ class HomeViewModel @Inject constructor(
     private var countdownJob: Job? = null
 
     init {
-       initializeViewModel()
+        initializeViewModel()
     }
 
     fun onAction(action: HomeContract.UiAction) {
@@ -69,9 +69,9 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun initializeViewModel() {
-            loadLastKnownLocation()
-            fetchLocation()
-            fetchCalender()
+        loadLastKnownLocation()
+        fetchLocation()
+        fetchCalender()
     }
 
     private fun locationRequest() {
@@ -83,25 +83,25 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun loadLastKnownLocation() {
-            viewModelScope.launch {
-                updateUiState {
-                    copy(
-                        isLoading = true
-                    )
-                }
-                val location = buildLocationString(
-                    locationUseCase.getLatitude(),
-                    locationUseCase.getLongitude()
+        viewModelScope.launch {
+            updateUiState {
+                copy(
+                    isLoading = true
                 )
+            }
+            val location = buildLocationString(
+                locationUseCase.getLatitude(),
+                locationUseCase.getLongitude()
+            )
 
-                if (location != DEFAULT_LOCATION) {
-                    updateUiState { copy(location = location) }
-                    fetchPrayerTimings(location)
-                    updateUiState {
-                        copy(isLoading = false)
-                    }
+            if (location != DEFAULT_LOCATION) {
+                updateUiState { copy(location = location) }
+                fetchPrayerTimings(location)
+                updateUiState {
+                    copy(isLoading = false)
                 }
             }
+        }
     }
 
     private fun fetchLocation() {
@@ -184,23 +184,23 @@ class HomeViewModel @Inject constructor(
 
 
     private fun requestCurrentLocationUpdate() {
-            if (!checkLocationPermissions()) {
-                loadLastKnownLocation()
+        if (!checkLocationPermissions()) {
+            loadLastKnownLocation()
+        }
+        try {
+            val cancellationToken = CancellationTokenSource().token
+            fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                cancellationToken
+            ).apply {
+                addOnSuccessListener(::handleLocationSuccess)
+                addOnFailureListener(::handleLocationFailure)
             }
-            try {
-                val cancellationToken = CancellationTokenSource().token
-                fusedLocationClient.getCurrentLocation(
-                    Priority.PRIORITY_HIGH_ACCURACY,
-                    cancellationToken
-                ).apply {
-                    addOnSuccessListener(::handleLocationSuccess)
-                    addOnFailureListener(::handleLocationFailure)
-                }
-            } catch (securityException: SecurityException) {
-                handleSecurityException(securityException)
-            } catch (exception: Exception) {
-                handleGeneralException(exception)
-            }
+        } catch (securityException: SecurityException) {
+            handleSecurityException(securityException)
+        } catch (exception: Exception) {
+            handleGeneralException(exception)
+        }
     }
 
     private fun handleLocationSuccess(location: Location?) {
@@ -258,7 +258,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-   private fun startPrayerTimeCountdown(prayerTimings: PrayerTimings) {
+    private fun startPrayerTimeCountdown(prayerTimings: PrayerTimings) {
         countdownJob?.cancel()
 
         countdownJob = viewModelScope.launch {
@@ -279,10 +279,22 @@ class HomeViewModel @Inject constructor(
         val prayers = buildList {
             prayerTimings.data.timings.run {
                 if (fajrTime.isNotEmpty()) add(Triple(1, "Fajr", convertToLocalTime(fajrTime)))
-                if (sunriseTime.isNotEmpty()) add(Triple(2, "Sunrise", convertToLocalTime(sunriseTime)))
+                if (sunriseTime.isNotEmpty()) add(
+                    Triple(
+                        2,
+                        "Sunrise",
+                        convertToLocalTime(sunriseTime)
+                    )
+                )
                 if (dhuhrTime.isNotEmpty()) add(Triple(3, "Dhuhr", convertToLocalTime(dhuhrTime)))
                 if (asrTime.isNotEmpty()) add(Triple(4, "Asr", convertToLocalTime(asrTime)))
-                if (maghribTime.isNotEmpty()) add(Triple(5, "Maghrib", convertToLocalTime(maghribTime)))
+                if (maghribTime.isNotEmpty()) add(
+                    Triple(
+                        5,
+                        "Maghrib",
+                        convertToLocalTime(maghribTime)
+                    )
+                )
                 if (ishaTime.isNotEmpty()) add(Triple(6, "Isha", convertToLocalTime(ishaTime)))
             }
         }.sortedBy { it.third }
@@ -290,14 +302,15 @@ class HomeViewModel @Inject constructor(
         val nextPrayer = prayers.firstOrNull { it.third.isAfter(currentTime) }
             ?: prayers.first()
 
-        val duration = if (nextPrayer == prayers.first() && currentTime.isAfter(prayers.last().third)) {
-            val nextDayFirstPrayer = nextPrayer.third
-            val durationUntilMidnight = Duration.between(currentTime, LocalTime.MAX)
-            val durationFromMidnight = Duration.between(LocalTime.MIN, nextDayFirstPrayer)
-            durationUntilMidnight.plus(durationFromMidnight)
-        } else {
-            Duration.between(currentTime, nextPrayer.third)
-        }
+        val duration =
+            if (nextPrayer == prayers.first() && currentTime.isAfter(prayers.last().third)) {
+                val nextDayFirstPrayer = nextPrayer.third
+                val durationUntilMidnight = Duration.between(currentTime, LocalTime.MAX)
+                val durationFromMidnight = Duration.between(LocalTime.MIN, nextDayFirstPrayer)
+                durationUntilMidnight.plus(durationFromMidnight)
+            } else {
+                Duration.between(currentTime, nextPrayer.third)
+            }
 
         updateUiState {
             copy(
@@ -316,12 +329,9 @@ class HomeViewModel @Inject constructor(
                 prayerSeconds = "%02d".format(duration.seconds % 60)
             )
         }
-
-
     }
 
-
-    fun convertToLocalTime(timeStr: String): LocalTime {
+    private fun convertToLocalTime(timeStr: String): LocalTime {
         return LocalTime.parse(timeStr, DateTimeFormatter.ofPattern("HH:mm"))
     }
 
@@ -341,7 +351,6 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-
 
 
     private suspend fun emitUiEffect(effect: HomeContract.UiEffect) {

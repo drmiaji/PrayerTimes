@@ -98,7 +98,6 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-
     private fun updateUiState(block: ChatContract.UiState.() -> ChatContract.UiState) {
         _uiState.update(block)
     }
@@ -106,6 +105,4 @@ class ChatViewModel @Inject constructor(
     private suspend fun emitUiEffect(effect: ChatContract.UiEffect) {
         _uiEffect.send(effect)
     }
-    
-
 }
